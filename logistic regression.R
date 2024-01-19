@@ -1,15 +1,5 @@
 # Data - S.in.C.clean.2 = only students who are controls or students in crisis
-
-
-# various transformation strategies - see model selection.R for why I decided these
-S.in.C.clean.2 <- S.in.C.clean.2%>%
-    mutate(CREDITS_log = log(TOTAL_TERM_CREDITS + 1),
-           GPA_cat = cut(S.in.C.clean.2$TERM_GPA,
-                         breaks = c(-0.1, 1, 2, 3, 4.1),
-                         labels = c("Less than 1.0", "1.1-2.0",
-                                    "2.1-3.0", "3.1-4.0")))
-
-# CREDITS_log and GPA_cat
+# Prior transformations - log of Credits = CREDITS_log and changed GPA to categorical = GPA_cat
 # Outcomes: completed term, retention, graduated
 
 ############# Retention model ##############
@@ -21,10 +11,10 @@ retention.model <- glm(retention.num ~group + relevel(factor(RACE), ref =7) + GE
                        data = S.in.C.clean.2, family="binomial")
 
 summary(retention.model)
+# change to Odds ratio
 retention.OR <- exp(cbind(OR= coef(retention.model), confint(retention.model)))
 retention.OR
-# cache("retention.model")
-# cache("retention.OR")
+
 # there was a statistically significant difference between control group and students in crisis
 # students who received bruins emergency funds were more likely to retain than students who only
 # received the other grant
@@ -39,39 +29,11 @@ grad.model <- glm(grad.num ~group + relevel(factor(RACE), ref =7) + GENDER + HIS
 summary(grad.model)
 grad.OR <- exp(cbind(OR= coef(grad.model), confint(grad.model)))
 grad.OR
-# cache("grad.model")
-# cache("grad.OR")
+
 # no statistically significant difference between control group and students in crisis
 
 
 ################### term completion model ###################
-
-xtabs(~ RACE + COMPLETED.TERM, S.in.C.clean.2)
-xtabs(~ HISPANIC_IND + COMPLETED.TERM, S.in.C.clean.2)
-xtabs(~ GENDER + COMPLETED.TERM, S.in.C.clean.2)
-xtabs(~ group+ COMPLETED.TERM, S.in.C.clean.2)
-tapply(S.in.C.clean.2$TOTAL_TERM_CREDITS, S.in.C.clean.2$complete.term.num, summary)
-# students who don't complete appear to drop classes and end with 0 credits.
-ggplot(S.in.C.clean.2, aes(TOTAL_TERM_CREDITS, fill = COMPLETED.TERM)) +
-    geom_histogram()
-xtabs(~ COMPLETED.TERM + retention.num, S.in.C.clean.2)
-xtabs(~ GRADUATED_IND + COMPLETED.TERM, S.in.C.clean.2)
-xtabs(~ GRADUATED_IND + retention.num, S.in.C.clean.2)
-
-`# a couple of issues with the model 1) forgot to remove term GPA 2) need to drop gender unknown,
-# 3) and term credits - this may be those
-#S.in.C.clean.3 <- S.in.C.clean.2  %>%
-# mutate(RACE.2 = case_when(RACE == "White" ~ "White",
-#                           RACE == "Prefer Not to Say" ~ "Prefer Not to Say",
-#                           RACE == "More than One" ~ "More than One",
-#                           TRUE ~ "Other"))
-
-# variables that I can't include: TERM_GPA (it means that the completed),
-# TOTAL_TERM_CREDITS (this can also mean they complete or didn't drop all of their courses)
-
-# I think I need to drop the both - one if they received awards at different semesters
-# than which ever comes first we already know they had to have retained
-
 comp.term.model <- glm(complete.term.num ~group + relevel(factor(RACE), ref =7) + GENDER + HISPANIC_IND +
                            FIRST_GEN_STATUS + PELL_GRANT_ELIGIBLE + TERM_AGE,
                        data = S.in.C.clean.2, family="binomial")
@@ -79,9 +41,6 @@ comp.term.model <- glm(complete.term.num ~group + relevel(factor(RACE), ref =7) 
 summary(comp.term.model)
 comp.term.OR <- exp(cbind(OR= coef(comp.term.model), confint(comp.term.model)))
 comp.term.OR
-# cache("comp.term.model")
-# cache("comp.term.OR")
-
 
 
 ################################
