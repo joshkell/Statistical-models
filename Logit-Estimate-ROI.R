@@ -1,4 +1,12 @@
-#model for success
+#estimate Return on Investment based on a logistic regression model 
+#Salt Lake Community College data - background: Math department randomly assigned a learning assistant to courses
+   #students could use the learning assistant for help. We don't know if they did or did not though.
+   #results, not significant, but were looking promising. The math department was encouraged enough to use the data
+   #to ask for additional funding in the 2024 Utah Legislative session. 
+
+#####################
+# VARIOUS STATISTICAL MODELS 
+#model for success - mixed effect
 success.model = glmer(success.ind.num ~ pell.eligible + gender + race +
                           hispanic + first.gen + la.ind.T.F  +
                           #repeat.sequence.ind + #Fixed effects
@@ -12,13 +20,14 @@ success.model = glmer(success.ind.num ~ pell.eligible + gender + race +
 summary(success.model)
 confint(success.model)
 
+# logistic regression
 logit.success.model <- glm(success.ind.num~ pell.eligible + gender + race +
                                hispanic + first.gen + la.ind.T.F +
                                repeat.sequence.ind + term.code +
                                campus + course.num,
                            data = combined.df, family = "binomial")
 summary(logit.success.model)
-#cache("logit.success.model")
+
 
 
 #PASSED
@@ -29,7 +38,7 @@ logit.passed.model <- glm(passed.ind.num~ pell.eligible + gender + race +
                           data = combined.df, family = "binomial")
 summary(logit.passed.model)
 
-#model for passing
+#model for passing - mixed effect
 passed.model = glmer(passed.ind.num ~ pell.eligible + gender + race +
                          hispanic + first.gen + la.ind.T.F +
                          #Fixed effects
@@ -37,7 +46,7 @@ passed.model = glmer(passed.ind.num ~ pell.eligible + gender + race +
                          #campus + concurrent.section +
                          # + (1 | instructor.pidm) #got rid of a few errors
                          # (1 | pidm) + # not enought repeat students
-                         (1 | crn), #random effects from nested or heirarchical structure
+                         (1 | crn), #random effects from nested or hierarchical structure
                      data = combined.df, family = "binomial")
 
 summary(passed.model)
@@ -51,8 +60,9 @@ plot_model(passed.model,
 #graph the random effect of CRN
 plot_model(passed.model, type ="re")
 
+#due to limited repeat students and errors appearing in glmer models we opted for a logit model
 
-# check model assumptions
+# check model assumptions - logit model = logit.success.model
 ################################
 # Assumption 1: binary outcome variable
 # All outcomes are binary: retention, graduation, and completed term
